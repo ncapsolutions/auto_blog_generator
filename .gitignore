@@ -9,6 +9,7 @@
 
 # Ignore all environment files.
 /.env*
+/node_modules
 
 # Ignore all logfiles and tempfiles.
 /log/*
@@ -32,3 +33,7 @@
 
 # Ignore master key for decrypting credentials and more.
 /config/master.key
+
+# Bundler
+/vendor/bundle
+
