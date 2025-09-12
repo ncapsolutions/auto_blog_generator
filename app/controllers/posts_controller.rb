@@ -159,6 +159,7 @@ class PostsController < ApplicationController
       end
     end.compact
 
+    # Return
     "#{title_html}<div class='spacing'></div>#{formatted_paragraphs.join('<div class=\"spacing\"></div>')}"
   end
 end
