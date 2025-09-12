@@ -1,0 +1,1 @@
+echo "# CI/CD disabled" > .gitlab-ci.yml
