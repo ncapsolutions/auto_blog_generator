@@ -1,0 +1,114 @@
+<!-- Hero Section -->
+<section class="gradient-bg rounded-2xl text-white p-8 mb-12">
+    <div class="max-w-3xl mx-auto text-center">
+        <h1 class="text-4xl font-bold mb-4">Share Your Stories with the World</h1>
+        <p class="text-xl mb-8">A modern blogging platform where you can express your thoughts and ideas.</p>
+
+        <% unless user_signed_in? %>
+        <div class="flex justify-center space-x-4">
+            <%= link_to "Get Started", new_user_registration_path, class: "bg-white text-blue-700 font-semibold px-6 py-3 rounded-lg hover:bg-gray-100 transition duration-300" %>
+            <%= link_to "Learn More", "#", class: "border border-white text-white font-semibold px-6 py-3 rounded-lg hover:bg-white hover:text-blue-700 transition duration-300" %>
+        </div>
+        <% else %>
+        <%= link_to "Create New Post", new_post_path, class: "bg-white text-blue-700 font-semibold px-6 py-3 rounded-lg hover:bg-gray-100 transition duration-300 inline-block" %>
+        <% end %>
+    </div>
+</section>
+
+<!-- Featured Posts -->
+<section class="mb-12">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">Featured Stories</h2>
+        <%= link_to "View All", posts_path, class: "text-blue-600 hover:text-blue-800 font-medium flex items-center" %>
+    </div>
+
+    <% if @posts.any? %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <% @posts.each do |post| %>
+        <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover">
+            <% if post.image.attached? %>
+            <%= image_tag post.image, class: "w-full h-48 object-cover" %>
+            <% else %>
+            <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                <i class="fas fa-image text-gray-400 text-4xl"></i>
+            </div>
+            <% end %>
+
+            <div class="p-6">
+                <div class="flex items-center text-sm text-gray-500 mb-2">
+                    <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                        <%= post.public? ? 'Public' : 'Private' %>
+                    </span>
+                    <span class="mx-2">•</span>
+                    <span><%= time_ago_in_words(post.created_at) %> ago</span>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-800 mb-2 hover:text-blue-600 transition duration-300">
+                    <%= link_to strip_tags(post.title).gsub('&amp;', '&').gsub('&nbsp;', ' '), post %>
+                </h3>
+
+                <p class="text-gray-600 mb-4">
+                    <%= truncate(strip_tags(post.description).gsub('&amp;', '&').gsub('&nbsp;', ' '), length: 120) %>
+                </p>
+
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="h-8 w-8 rounded-full gradient-bg flex items-center justify-center text-white text-sm font-medium">
+                            <%= post.user.email[0].upcase %>
+                        </div>
+                        <span class="ml-2 text-sm text-gray-600"><%= post.user.email %></span>
+                    </div>
+
+                    <%= link_to post, class: "text-blue-600 hover:text-blue-800 flex items-center" do %>
+                    Read More
+                    <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                    <% end %>
+                </div>
+            </div>
+        </div>
+        <% end %>
+    </div>
+    <% else %>
+    <div class="bg-white rounded-xl shadow-md p-8 text-center">
+        <i class="fas fa-edit text-4xl text-gray-300 mb-4"></i>
+        <h3 class="text-xl font-semibold text-gray-700 mb-2">No posts yet</h3>
+        <p class="text-gray-500 mb-4">Be the first to share your story!</p>
+        <% unless user_signed_in? %>
+        <%= link_to "Sign Up to Get Started", new_user_registration_path, class: "bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300" %>
+        <% else %>
+        <%= link_to "Create Your First Post", new_post_path, class: "bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300" %>
+        <% end %>
+    </div>
+    <% end %>
+</section>
+
+<!-- Features Section -->
+<section class="bg-white rounded-xl shadow-md p-8 mb-12">
+    <h2 class="text-2xl font-bold text-center text-gray-800 mb-8">Why Choose ModernBlog?</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="text-center">
+            <div class="gradient-bg rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-lock text-white text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Privacy Control</h3>
+            <p class="text-gray-600">Choose whether your posts are public or private with just one click.</p>
+        </div>
+
+        <div class="text-center">
+            <div class="gradient-bg rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-image text-white text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Image Support</h3>
+            <p class="text-gray-600">Enhance your stories with beautiful images that capture attention.</p>
+        </div>
+
+        <div class="text-center">
+            <div class="gradient-bg rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-paint-brush text-white text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Modern Design</h3>
+            <p class="text-gray-600">Enjoy a clean, responsive interface that works on any device.</p>
+        </div>
+    </div>
+</section>

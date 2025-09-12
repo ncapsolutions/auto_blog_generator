@@ -1,0 +1,12 @@
+= TTiimmee..ccuurrrreenntt
+
+(from gem activesupport-8.0.2.1)
+------------------------------------------------------------------------
+  current()
+
+------------------------------------------------------------------------
+
+Returns Time.zone.now when Time.zone or config.time_zone are set,
+otherwise just returns Time.now.
+
+

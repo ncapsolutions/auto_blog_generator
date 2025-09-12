@@ -1,0 +1,24 @@
+<div style="font-family: Arial, sans-serif; background-color:#f9fafb; padding:20px;">
+    <div style="max-width:600px; margin:0 auto; background:#ffffff; padding:20px; border-radius:8px; border:1px solid #e5e7eb;">
+
+        <h2 style="color:#111827; text-align:center;">Hello <%= @resource.email %> 👋</h2>
+
+        <p style="color:#374151; font-size:14px; line-height:1.5; margin-top:16px;">
+            Your account has been locked due to too many unsuccessful sign-in attempts.
+        </p>
+
+        <p style="color:#374151; font-size:14px; line-height:1.5; margin-top:16px;">
+            Click the button below to unlock your account and regain access:
+        </p>
+
+        <div style="text-align:center; margin:24px 0;">
+            <%= link_to 'Unlock my account',
+          unlock_url(@resource, unlock_token: @token),
+          style: "background-color:#4f46e5; color:#ffffff; padding:12px 24px; text-decoration:none; border-radius:6px; font-weight:bold;" %>
+        </div>
+
+        <p style="color:#6b7280; font-size:12px; text-align:center; margin-top:20px;">
+            If you did not try to sign in, please contact our support immediately.
+        </p>
+    </div>
+</div>

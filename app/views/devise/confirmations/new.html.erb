@@ -1,0 +1,24 @@
+<div class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
+        <h2 class="text-2xl font-bold text-center mb-6">Resend confirmation instructions</h2>
+
+        <%= form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { method: :post }) do |f| %>
+        <%= render "devise/shared/error_messages", resource: resource %>
+
+        <div class="mb-4">
+            <%= f.label :email, class: "block text-sm font-medium text-gray-700" %>
+            <%= f.email_field :email,
+              autofocus: true,
+              autocomplete: "email",
+              value: (resource.pending_reconfirmation? ? resource.unconfirmed_email : resource.email),
+              class: "w-full mt-1 p-2 border rounded-lg focus:ring focus:ring-indigo-300" %>
+        </div>
+
+        <%= f.submit "Resend confirmation instructions", class: "w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition" %>
+        <% end %>
+
+        <p class="mt-6 text-center text-sm text-gray-600">
+            <%= link_to "Back to login", new_session_path(resource_name), class: "text-indigo-600 hover:underline" %>
+        </p>
+    </div>
+</div>

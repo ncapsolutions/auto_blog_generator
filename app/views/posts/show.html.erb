@@ -1,0 +1,61 @@
+<div class="max-w-3xl mx-auto">
+    <% if @post.image.attached? %>
+    <div class="mb-8 rounded-xl overflow-hidden">
+        <%= image_tag @post.image, class: "w-full h-64 object-cover" %>
+    </div>
+    <% end %>
+
+    <div class="bg-white rounded-xl shadow-md p-8 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <span class="bg-<%= @post.public? ? 'green' : 'blue' %>-100 text-<%= @post.public? ? 'green' : 'blue' %>-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                <%= @post.public? ? 'Public' : 'Private' %>
+            </span>
+
+            <div class="text-sm text-gray-500">
+                <%= time_ago_in_words(@post.created_at) %> ago
+            </div>
+        </div>
+
+        <h1 class="text-3xl font-bold text-gray-800 mb-4"><%= @post.title %></h1>
+
+        <div class="prose max-w-none mb-8">
+            <div class="text-gray-700 leading-relaxed">
+                <%= raw @post.description %>
+            </div>
+        </div>
+
+        <div class="flex items-center border-t border-gray-100 pt-6">
+            <div class="h-10 w-10 rounded-full gradient-bg flex items-center justify-center text-white font-medium">
+                <%= @post.user.email[0].upcase %>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-gray-900"><%= @post.user.email %></p>
+            </div>
+
+            <% if user_signed_in? && current_user == @post.user %>
+            <div class="ml-auto flex space-x-2">
+                <%= link_to edit_post_path(@post), class: "text-gray-600 hover:text-gray-900 px-3 py-1 rounded-md text-sm font-medium flex items-center" do %>
+                <i class="fas fa-edit mr-1"></i> Edit
+                <% end %>
+                <%= link_to @post,
+                data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
+                class: "text-red-600 hover:text-red-900 px-3 py-1 rounded-md text-sm font-medium flex items-center" do %>
+                <i class="fas fa-trash mr-1"></i> Delete
+                <% end %>
+            </div>
+            <% end %>
+        </div>
+    </div>
+
+    <div class="flex justify-between">
+        <%= link_to posts_path, class: "text-blue-600 hover:text-blue-800 font-medium flex items-center" do %>
+        <i class="fas fa-arrow-left mr-2"></i> Back to all posts
+        <% end %>
+
+        <% if user_signed_in? && current_user == @post.user %>
+        <%= link_to dashboard_path, class: "text-gray-600 hover:text-gray-900 font-medium flex items-center" do %>
+        <i class="fas fa-th-large mr-2"></i> Dashboard
+        <% end %>
+        <% end %>
+    </div>
+</div>
