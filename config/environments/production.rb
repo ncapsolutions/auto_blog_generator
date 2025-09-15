@@ -33,7 +33,8 @@ Rails.application.configure do
   # ActiveJob ke liye inline adapter (simple tasks ke liye)
   config.active_job.queue_adapter = :async
 
-  config.action_mailer.default_url_options = { host: "example.com" }
+  # config.action_mailer.default_url_options = { host: "example.com" }
+  config.action_mailer.default_url_options = { host: "modern-blog-74qm.onrender.com", protocol: "https" }
 
   config.i18n.fallbacks = true
   config.active_record.dump_schema_after_migration = false
