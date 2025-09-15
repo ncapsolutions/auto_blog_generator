@@ -123,6 +123,8 @@ GEM
     faraday-net_http (3.4.1)
       net-http (>= 0.5.0)
     ffi (1.17.2-x86_64-linux-gnu)
+    foreman (0.90.0)
+      thor (~> 1.4)
     globalid (1.2.1)
       activesupport (>= 6.1)
     i18n (1.14.7)
@@ -364,6 +366,7 @@ DEPENDENCIES
   debug
   devise
   faraday
+  foreman
   image_processing (~> 1.2)
   importmap-rails
   jbuilder
