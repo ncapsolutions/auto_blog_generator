@@ -47,17 +47,19 @@ default: &default
 
 development:
   adapter: sqlite3
-  <<: *default
   database: storage/development.sqlite3
+  <<: *default
 
 test:
   adapter: sqlite3
-  <<: *default
   database: storage/test.sqlite3
+  <<: *default
 
 production:
   <<: *default
-  adapter: postgresql
-  encoding: unicode
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   url: <%= ENV['DATABASE_URL'] %>
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  
+  cable:
+    adapter: postgresql
+    url: <%= ENV['DATABASE_URL'] %>
