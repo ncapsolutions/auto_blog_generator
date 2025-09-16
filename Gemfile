@@ -4,8 +4,8 @@ source "https://rubygems.org"
 gem "rails", "~> 8.0.2", ">= 8.0.2.1"
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
 gem "propshaft"
-# Use pg as the database for Active Record
-gem "pg", "~> 1.1"
+# Use pg as the database for Active Record - ONLY IN PRODUCTION
+# gem "pg", "~> 1.1"  # REMOVE THIS LINE
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
@@ -20,8 +20,6 @@ gem 'devise'
 gem 'image_processing', '~> 1.2'
 gem 'mini_magick'
 gem "ruby-openai"
-# Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
-# gem "bcrypt", "~> 3.1.7"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
@@ -41,15 +39,16 @@ gem "kamal", require: false
 gem "thruster", require: false
 
 gem 'sidekiq'
-
 gem 'faraday'
-
 gem 'foreman'
 
-# Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-# gem "image_processing", "~> 1.2"
+gem "cloudinary"
+gem "activestorage-cloudinary-service"
 
 group :development, :test do
+  # Use sqlite3 for development and testing
+  gem "sqlite3"
+  
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
 
@@ -58,6 +57,11 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+end
+
+group :production do
+  # Use pg only in production
+  gem "pg", "~> 1.1"
 end
 
 group :development do

@@ -16,9 +16,8 @@ Rails.application.configure do
   # Assets
   config.assets.compile = false # Always precompile assets in production
 
-  # Storage
-  config.active_storage.service = :local
-
+# Storage (use Cloudinary in production)
+  config.active_storage.service = :cloudinary
   # Force SSL
   config.assume_ssl = true
   config.force_ssl = true
@@ -33,7 +32,8 @@ Rails.application.configure do
   config.active_support.report_deprecations = false
 
   # Active Job with Sidekiq
-  config.active_job.queue_adapter = :sidekiq
+  # config.active_job.queue_adapter = :sidekiq
+  config.active_job.queue_adapter = :inline
 
   # Mailer setup
   config.action_mailer.raise_delivery_errors = true
