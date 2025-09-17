@@ -24,7 +24,7 @@
 
     <% if @posts.any? %>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <% @posts.each do |post| %>
+        <% @posts.first(6).each do |post| %>
         <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover">
             <% if post.image.attached? %>
             <%= image_tag post.image, class: "w-full h-48 object-cover" %>

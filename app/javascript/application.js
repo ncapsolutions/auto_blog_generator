@@ -3,7 +3,8 @@ import "@hotwired/turbo-rails"
 import "controllers"
 import "generate_description"
 import "generate_ai_image";
-
+import "generate_qa";
+import "generate_keyword";
 let ckeditorInstance; // 🔹 Global variable to hold editor
 
 document.addEventListener("turbo:load", () => {

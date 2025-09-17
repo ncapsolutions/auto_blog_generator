@@ -44,7 +44,7 @@ gem 'foreman'
 
 gem "cloudinary"
 gem "activestorage-cloudinary-service"
-
+gem 'kaminari'
 group :development, :test do
   # Use sqlite3 for development and testing
   gem "sqlite3"

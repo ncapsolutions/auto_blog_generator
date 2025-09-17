@@ -6,6 +6,7 @@ Rails.application.routes.draw do
     collection do
       post :generate_description
       post :generate_ai_image
+      post :generate_qa
     end
   end
 

@@ -1,0 +1,26 @@
+<%= paginator.render do %>
+<nav class="flex justify-center mt-6">
+    <ul class="inline-flex items-center space-x-2">
+        <%= first_page_tag unless current_page.first? %>
+        <%= prev_page_tag unless current_page.first? %>
+
+        <% each_page do |page| %>
+        <% if page.current? %>
+        <li>
+            <span class="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium shadow">
+                <%= page.number %>
+            </span>
+        </li>
+        <% else %>
+        <li>
+            <%= link_to page.number, url_for(page: page),
+              class: "px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-blue-600 hover:text-white transition" %>
+        </li>
+        <% end %>
+        <% end %>
+
+        <%= next_page_tag unless current_page.last? %>
+        <%= last_page_tag unless current_page.last? %>
+    </ul>
+</nav>
+<% end %>

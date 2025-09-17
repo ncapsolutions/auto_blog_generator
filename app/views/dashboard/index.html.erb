@@ -48,9 +48,7 @@
     <% end %>
 </div>
 
-<% posts = current_user.posts.order(created_at: :desc) %>
-
-<% if posts.any? %>
+<% if @posts.any? %>
 <div class="bg-white rounded-xl shadow-md overflow-hidden">
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
@@ -63,7 +61,7 @@
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-                <% posts.each do |post| %>
+                <% @posts.each do |post| %>
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-gray-900">
@@ -89,6 +87,13 @@
         </table>
     </div>
 </div>
+
+<!-- Pagination -->
+<% if @posts.total_pages > 1 %>
+<div class="mt-6 flex justify-center">
+    <%= paginate @posts %>
+</div>
+<% end %>
 <% else %>
 <div class="bg-white rounded-xl shadow-md p-8 text-center">
     <i class="fas fa-edit text-4xl text-gray-300 mb-4"></i>

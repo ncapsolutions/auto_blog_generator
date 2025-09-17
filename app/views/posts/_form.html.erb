@@ -19,7 +19,37 @@
     <%= form.text_field :title, id: "post_title", class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 border", placeholder: "Enter a catchy title" %>
 </div>
 
+<!-- Keywords + Links -->
+<div id="keywords-container">
+    <div class="mt-3 flex items-center justify-between">
+        <label class="text-sm font-medium text-gray-700">Keywords & Links</label>
+        <button type="button" id="add-keyword-btn" class="text-blue-600 hover:text-blue-800 font-medium px-3 py-1 rounded border border-blue-600">
+            + Add
+        </button>
+    </div>
+
+    <!-- Rows container -->
+    <div id="keywords-rows" class="space-y-2">
+        <% if post.keywords.present? && post.links.present? %>
+        <% post.keywords.each_with_index do |keyword, index| %>
+        <div class="flex space-x-2 keyword-row">
+            <input type="text" name="post[keywords][]" value="<%= keyword %>" placeholder="Keyword" class="flex-1 rounded-lg border-gray-300 shadow-sm p-2 border" required>
+            <input type="text" name="post[links][]" value="<%= post.links[index] %>" placeholder="Link" class="flex-1 rounded-lg border-gray-300 shadow-sm p-2 border" required>
+            <button type="button" class="remove-keyword text-red-600 hover:text-red-800 font-medium px-2 rounded">Remove</button>
+        </div>
+        <% end %>
+        <% else %>
+        <div class="flex space-x-2 keyword-row">
+            <input type="text" name="post[keywords][]" placeholder="Keyword" class="flex-1 rounded-lg border-gray-300 shadow-sm p-2 border" required>
+            <input type="text" name="post[links][]" placeholder="Link" class="flex-1 rounded-lg border-gray-300 shadow-sm p-2 border" required>
+            <button type="button" class="remove-keyword text-red-600 hover:text-red-800 font-medium px-2 rounded">Remove</button>
+        </div>
+        <% end %>
+    </div>
+</div>
+
 <!-- Description + AI -->
+
 <div>
     <div class="flex justify-between items-center mb-1">
         <%= form.label :description, class: "block text-sm font-medium text-gray-700" %>
@@ -32,10 +62,10 @@
         </button>
     </div>
     <%= form.text_area :description,
-        id: "post_description",
-        rows: 8,
-        class: "ckeditor-textarea mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 border transition-all duration-300",
-        placeholder: "Write your story here..." %>
+          id: "post_description",
+          rows: 8,
+          class: "ckeditor-textarea mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 border transition-all duration-300",
+          placeholder: "Write your story here..." %>
 </div>
 
 <!-- Image + AI -->
@@ -58,12 +88,43 @@
     <% end %>
 
     <%= form.file_field :image, id: "post_image", class: "mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" %>
-
+    <%= form.hidden_field :ai_image_url, id: "post_ai_image_url" %>
     <div id="ai-image-preview" class="mt-4"></div>
 </div>
 
-<!-- 🔵 Hidden field for AI image URL -->
-<%= form.hidden_field :ai_image_url, id: "post_ai_image_url" %>
+<!-- Q&A Section -->
+<div id="qa-container" class="space-y-2 mt-6">
+    <div class="flex justify-between items-center">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Questions & Answers</label>
+        <button type="button" id="generate-qa-btn" class="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800 font-medium">
+            <span><strong>Generate Q&A with AI 💡</strong></span>
+            <svg id="generate-qa-spinner" class="hidden animate-spin h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+        </button>
+    </div>
+
+    <% if post.questions.present? && post.answers.present? %>
+    <% post.questions.each_with_index do |question, index| %>
+    <div class="flex space-x-2 mt-1 qa-row">
+        <input type="text" name="post[questions][]" value="<%= question %>" placeholder="Question" class="mt-1 block w-1/2 rounded-lg border-gray-300 shadow-sm p-2 border" required>
+        <input type="text" name="post[answers][]" value="<%= post.answers[index] %>" placeholder="Answer" class="mt-1 block w-1/2 rounded-lg border-gray-300 shadow-sm p-2 border" required>
+        <button type="button" class="remove-qa text-red-600 hover:text-red-800 font-medium px-2 rounded">Remove</button>
+    </div>
+    <% end %>
+    <% else %>
+    <% 3.times do %>
+    <div class="flex space-x-2 mt-1 qa-row">
+        <input type="text" name="post[questions][]" placeholder="Question" class="mt-1 block w-1/2 rounded-lg border-gray-300 shadow-sm p-2 border" required>
+        <input type="text" name="post[answers][]" placeholder="Answer" class="mt-1 block w-1/2 rounded-lg border-gray-300 shadow-sm p-2 border" required>
+        <button type="button" class="remove-qa text-red-600 hover:text-red-800 font-medium px-2 rounded">Remove</button>
+    </div>
+    <% end %>
+    <% end %>
+
+    <button type="button" id="add-qa-btn" class="text-blue-600 hover:text-blue-800 font-medium px-2 rounded mt-2">+ Add Q&A</button>
+</div>
 
 <!-- Publish Time -->
 <div>

@@ -5,6 +5,12 @@ class Post < ApplicationRecord
   # Virtual attribute for AI image (optional)
   attr_accessor :ai_image_url
 
+  # --- SERIALIZED COLUMNS ---
+  serialize :keywords, coder: YAML
+  serialize :links,    coder: YAML
+  serialize :questions, coder: YAML
+  serialize :answers,   coder: YAML
+
   # --- VALIDATIONS ---
   validates :title, presence: true
   validates :description, presence: true

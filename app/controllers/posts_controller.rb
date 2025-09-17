@@ -7,7 +7,7 @@ class PostsController < ApplicationController
 
   # --- INDEX & SHOW ---
   def index
-    @posts = Post.public_posts.published.order(created_at: :desc)
+    @posts = Post.public_posts.published.order(created_at: :desc).page(params[:page]).per(9)
   end
 
   def show
@@ -25,12 +25,10 @@ class PostsController < ApplicationController
     @post = current_user.posts.new(post_params)
     @post.published_at ||= Time.current
 
+    @post.description = formatted_description_for_post(@post, params[:keywords], params[:links], post_params[:description])
+
     if @post.save
       attach_ai_image(@post)
-
-      # Schedule sync to WordPress
-      # schedule_sync(@post)
-
       redirect_to @post, notice: "Post was successfully created."
     else
       render :new, status: :unprocessable_entity
@@ -41,12 +39,12 @@ class PostsController < ApplicationController
   def edit; end
 
   def update
-    if @post.update(post_params)
+    updated_params = post_params.merge(
+      description: formatted_description_for_post(@post, params[:keywords], params[:links], post_params[:description])
+    )
+
+    if @post.update(updated_params)
       attach_ai_image(@post, replace: true)
-
-      # Schedule sync to WordPress
-      schedule_sync(@post)
-
       redirect_to @post, notice: "Post was successfully updated."
     else
       render :edit, status: :unprocessable_entity
@@ -62,17 +60,20 @@ class PostsController < ApplicationController
   # --- AI Helpers ---
   def generate_description
     title = params[:title]
-    image = params[:image]
+    keywords = Array(params[:keywords])
+    links = Array(params[:links])
 
     begin
-      description = AiDescriptionGenerator.new(title: title, image: image).call
-      formatted_description = format_description(title, description)
+      description = AiDescriptionGenerator.new(
+        title: title,
+        image: params[:image],
+        keywords: keywords,
+        links: links
+      ).call
+
+      formatted_description = format_description(title, description, keywords, links)
       render json: { description: formatted_description }
-    rescue Faraday::TooManyRequestsError
-      render json: { error: "AI service overloaded. Try later." }, status: :too_many_requests
-    rescue Faraday::UnauthorizedError
-      render json: { error: "Invalid API Key." }, status: :unauthorized
-    rescue StandardError => e
+    rescue => e
       Rails.logger.error("AI Description Error: #{e.full_message}")
       render json: { error: "Failed to generate description." }, status: :internal_server_error
     end
@@ -90,6 +91,17 @@ class PostsController < ApplicationController
     end
   end
 
+  def generate_qa
+    title = params[:title].to_s.strip
+    keywords = Array(params[:keywords]).map(&:strip).reject(&:blank?)
+
+    qa_array = GenerateQaService.new(title: title, keywords: keywords).call
+    render json: { qa: qa_array }
+  rescue => e
+    Rails.logger.error("Generate QA failed: #{e.full_message}")
+    render json: { error: "Failed to generate Q&A" }, status: :internal_server_error
+  end
+
   private
 
   # --- CALLBACKS & HELPERS ---
@@ -98,7 +110,18 @@ class PostsController < ApplicationController
   end
 
   def post_params
-    params.require(:post).permit(:title, :description, :image, :ai_image_url, :public, :published_at)
+    params.require(:post).permit(
+      :title,
+      :description,
+      :image,
+      :ai_image_url,
+      :public,
+      :published_at,
+      keywords: [],
+      links: [],
+      questions: [],
+      answers: []
+    )
   end
 
   def authorize_user
@@ -120,46 +143,71 @@ class PostsController < ApplicationController
     end
   end
 
-  # --- SCHEDULE WORDPRESS SYNC ---
-  def schedule_sync(post)
-    if post.published_at > Time.current
-      PublishPostJob.set(wait_until: post.published_at).perform_later(post.id)
-    else
-      SyncToWordpressJob.perform_later(post.id)
+  # --- DESCRIPTION FORMATTING ---
+  def formatted_description_for_post(post, keywords = [], links = [], custom_description = nil)
+    keywords = Array(keywords)
+    links = Array(links)
+    description_to_format = custom_description || post.description
+    format_description(post.title, description_to_format, keywords, links)
+  end
+
+def format_description(title, description, keywords = [], links = [])
+  return " " if description.blank?
+
+  clean_description = description.dup
+  clean_description.gsub!(/^(title|introduction):?/i, '') # only remove literal "title:" or "introduction:"
+  clean_description.strip!
+
+  # Remove any existing title HTML from the description
+  title_pattern = /<h2><strong>.*?<\/strong><\/h2>/i
+  clean_description.gsub!(title_pattern, '')
+
+  keywords = Array(keywords)
+  links = Array(links)
+
+  # Replace keywords with styled links
+  if keywords.present? && links.present? && keywords.size == links.size
+    keywords.each_with_index do |kw, i|
+      next if kw.blank? || links[i].blank?
+      pattern = /(?<!\w)(#{Regexp.escape(kw)})(?!\w)/i
+      replacement = "<a href='#{links[i]}' target='_blank' style=\"color:#2563eb; font-weight:600; text-decoration:underline !important;\">\\1</a>"
+      clean_description.gsub!(pattern, replacement)
     end
   end
 
-  # --- FORMAT AI DESCRIPTION ---
-  def format_description(title, description)
-    return " " if description.blank?
-
-    # Clean description
-    clean_description = description.gsub(/^.*#{Regexp.escape(title)}.*$/i, '')
-                                   .gsub(/^title:.*$/i, '')
-                                   .gsub(/^introduction$/i, '')
-                                   .strip
-
-    # Title HTML
-    title_html = "<h2><strong>#{title}</strong></h2>"
-
-    # Paragraphs
-    paragraphs = clean_description.split(/\n\n+/)
-    formatted_paragraphs = paragraphs.map do |para|
-      para.strip!
-      next if para.empty?
-
-      case para
-      when /^##\s+(.+)/
-        "<h3>#{$1.strip}</h3>"
-      when /^(\d+\.|\-)\s+/
-        items = para.split("\n").map { |line| "<li>#{line.gsub(/^(\d+\.|\-)\s+/, '').strip}</li>" }.join
-        "<ul>#{items}</ul>"
-      else
-        "<p>#{para.gsub(/\n/, '<br>')}</p>"
-      end
-    end.compact
-
-    # Return
-    "#{title_html}<div class='spacing'></div>#{formatted_paragraphs.join('<div class=\"spacing\"></div>')}"
+  # Append missing keywords
+  missing = keywords.reject { |kw| clean_description.downcase.include?(kw.to_s.downcase) }
+  unless missing.empty?
+    missing_links = missing.map do |kw|
+      idx = keywords.index(kw)
+      link = links[idx] if idx
+      "<a href='#{link}' target='_blank' style=\"color:#2563eb; font-weight:600; text-decoration:underline !important;\">#{kw}</a>"
+    end
+    clean_description += "<div class='spacing'></div><p><strong>Related Keywords:</strong> #{missing_links.join(', ')}</p>"
   end
+
+  # Title + Paragraph formatting
+  title_html = "<h2><strong>#{title}</strong></h2>"
+  paragraphs = clean_description.split(/\n\n+/)
+  formatted_paragraphs = paragraphs.map do |para|
+    para.strip!
+    next if para.empty?
+
+    case para
+    when /^##\s+(.+)/
+      "<h3>#{$1.strip}</h3>"
+    when /^(\d+\.|\-)\s+/
+      items = para.split("\n").map { |line| "<li>#{line.gsub(/^(\d+\.|\-)\s+/, '').strip}</li>" }.join
+      "<ul>#{items}</ul>"
+    else
+      "<p>#{para.gsub(/\n/, '<br>')}</p>"
+    end
+  end.compact
+
+  # Always add the new title at the beginning
+  final_content = "#{title_html}<div class='spacing'></div>#{formatted_paragraphs.join('<div class=\"spacing\"></div>')}"
+  
+  final_content
+end
+
 end

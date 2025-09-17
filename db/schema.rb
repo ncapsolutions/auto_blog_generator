@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_05_130839) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_16_123916) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -74,6 +74,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_05_130839) do
     t.datetime "updated_at", null: false
     t.datetime "published_at"
     t.integer "wordpress_id"
+    t.text "keywords"
+    t.text "links"
+    t.text "questions"
+    t.text "answers"
     t.index ["user_id"], name: "index_posts_on_user_id"
     t.index ["wordpress_id"], name: "index_posts_on_wordpress_id"
   end

@@ -1,16 +1,284 @@
-<p style="color: green"><%= notice %></p>
-
 <% content_for :title, "Posts" %>
 
-<h1>Posts</h1>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <%
+=begin%>
+    <!-- Flash Notice -->
+    <% if notice.present? %>
+    <div class="mb-6 p-4 rounded-lg bg-green-100 text-green-700 border border-green-300 shadow-sm animate-fade-in">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+            </svg>
+            <%= notice %>
+        </div>
+    </div>
+    <% end %>
+    <%
+=end%>
 
-<div id="posts">
-  <% @posts.each do |post| %>
-    <%= render post %>
-    <p>
-      <%= link_to "Show this post", post %>
-    </p>
-  <% end %>
+    <!-- Page Header -->
+    <div class="mb-10 text-center">
+        <h1 class="text-4xl font-bold text-gray-900 mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Community Posts</h1>
+        <p class="text-lg text-gray-600 max-w-2xl mx-auto">Discover insights, stories, and ideas from our community members</p>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+        <div class="relative w-full sm:w-64">
+            <input type="text" id="searchInput" placeholder="Search posts..." class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm">
+            <svg class="w-5 h-5 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+        </div>
+
+        <%= link_to new_post_path, class: "flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5" do %>
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        New Post
+        <% end %>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="flex border-b border-gray-200 mb-8">
+        <button class="px-4 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600">All Posts</button>
+    </div>
+
+    <!-- Search Results Info -->
+    <div id="searchResultsInfo" class="hidden mb-6 p-4 bg-blue-50 text-blue-700 rounded-lg">
+        <p id="resultsCount"></p>
+    </div>
+
+    <% if @posts.any? %>
+    <!-- Posts Grid -->
+    <div id="postsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+        <% @posts.each do |post| %>
+        <div class="post-card bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col group" data-title="<%= strip_tags(post.title).downcase %>" data-description="<%= strip_tags(post.description).downcase %>" data-author="<%= post.user.email.downcase %>">
+            <!-- Post Image -->
+            <% if post.image.attached? %>
+            <%= link_to post do %>
+            <div class="relative overflow-hidden h-52">
+                <%= image_tag post.image, class: "w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" %>
+                <div class="absolute top-4 right-4">
+                    <span class="px-3 py-1 text-xs font-medium rounded-full <%= post.public? ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' %>">
+                        <%= post.public? ? 'Public' : 'Private' %>
+                    </span>
+                </div>
+            </div>
+            <% end %>
+            <% else %>
+            <%= link_to post do %>
+            <div class="w-full h-52 bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center relative">
+                <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <div class="absolute top-4 right-4">
+                    <span class="px-3 py-1 text-xs font-medium rounded-full <%= post.public? ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' %>">
+                        <%= post.public? ? 'Public' : 'Private' %>
+                    </span>
+                </div>
+            </div>
+            <% end %>
+            <% end %>
+
+            <!-- Post Content -->
+            <div class="flex flex-col flex-1 p-5">
+                <!-- Meta Information -->
+                <div class="flex items-center text-sm text-gray-500 mb-3">
+                    <span class="flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <%= time_ago_in_words(post.created_at) %> ago
+                    </span>
+                </div>
+
+                <!-- Title -->
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 leading-tight line-clamp-2">
+                    <%= link_to strip_tags(post.title).gsub('&amp;', '&').gsub('&nbsp;', ' '), post, class: "hover:text-blue-600 transition-colors" %>
+                </h3>
+
+                <!-- Description -->
+                <p class="text-gray-600 mb-4 flex-1 line-clamp-3">
+                    <%= truncate(strip_tags(post.description).gsub('&amp;', '&').gsub('&nbsp;', ' '), length: 120) %>
+                </p>
+
+                <!-- Footer: Author + Actions -->
+                <div class="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
+                    <div class="flex items-center">
+                        <div class="h-9 w-9 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-medium shadow-sm">
+                            <%= post.user.email[0].upcase %>
+                        </div>
+                        <span class="ml-2 text-sm text-gray-600 truncate max-w-xs"><%= post.user.email %></span>
+                    </div>
+
+                    <div class="flex items-center space-x-3">
+                        <button class="text-gray-400 hover:text-blue-500 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                            </svg>
+                        </button>
+                        <%= link_to post, class: "text-blue-600 hover:text-blue-800 flex items-center text-sm font-medium" do %>
+                        Read
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
+                        <% end %>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <% end %>
+    </div>
+
+    <!-- No Results Message -->
+    <div id="noResults" class="hidden bg-white rounded-2xl shadow-sm p-12 text-center max-w-2xl mx-auto">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-gray-50 rounded-full mb-6">
+            <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+        <h3 class="text-2xl font-semibold text-gray-800 mb-2">No matching posts found</h3>
+        <p class="text-gray-500 mb-6">Try different search terms or browse all posts</p>
+        <button id="clearSearch" class="inline-flex items-center px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-all">
+            Clear Search
+        </button>
+    </div>
+
+    <!-- Pagination -->
+    <div class="mt-12 flex justify-center">
+        <%= paginate @posts, 
+          class: "flex items-center space-x-1",
+          previous_label: '&larr; Previous',
+          next_label: 'Next &rarr;' %>
+    </div>
+
+    <% else %>
+    <!-- Empty State -->
+    <div class="bg-white rounded-2xl shadow-sm p-12 text-center max-w-2xl mx-auto">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-blue-50 rounded-full mb-6">
+            <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+        </div>
+        <h3 class="text-2xl font-semibold text-gray-800 mb-2">No posts yet</h3>
+        <p class="text-gray-500 mb-6">Be the first to share your story and inspire others in our community!</p>
+        <% unless user_signed_in? %>
+        <%= link_to "Sign Up to Get Started", new_user_registration_path,
+              class: "inline-flex items-center px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all" %>
+        <% else %>
+        <%= link_to "Create Your First Post", new_post_path,
+              class: "inline-flex items-center px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all" %>
+        <% end %>
+    </div>
+    <% end %>
 </div>
 
-<%= link_to "New post", new_post_path %>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const postsContainer = document.getElementById('postsContainer');
+        const searchResultsInfo = document.getElementById('searchResultsInfo');
+        const resultsCount = document.getElementById('resultsCount');
+        const noResults = document.getElementById('noResults');
+        const clearSearch = document.getElementById('clearSearch');
+        const postCards = document.querySelectorAll('.post-card');
+
+        // Store original posts for resetting
+        const originalPosts = Array.from(postCards);
+
+        // Function to perform search
+        function performSearch() {
+            const query = searchInput.value.toLowerCase().trim();
+
+            if (query === '') {
+                resetSearch();
+                return;
+            }
+
+            let visibleCount = 0;
+
+            postCards.forEach(card => {
+                const title = card.getAttribute('data-title');
+                const description = card.getAttribute('data-description');
+                const author = card.getAttribute('data-author');
+
+                // Check if the query matches any of the post attributes
+                const matches = title.includes(query) || description.includes(query) || author.includes(query);
+
+                if (matches) {
+                    card.style.display = 'flex';
+                    visibleCount++;
+
+                    // Highlight matching text in title
+                    const titleElement = card.querySelector('h3 a');
+                    if (titleElement && title.includes(query)) {
+                        const originalTitle = titleElement.textContent;
+                        const regex = new RegExp(query, 'gi');
+                        const highlightedTitle = originalTitle.replace(regex, match => `<span class="highlight">${match}</span>`);
+                        titleElement.innerHTML = highlightedTitle;
+                    }
+
+                    // Highlight matching text in description
+                    const descElement = card.querySelector('p');
+                    if (descElement && description.includes(query)) {
+                        const originalDesc = descElement.textContent;
+                        const regex = new RegExp(query, 'gi');
+                        const highlightedDesc = originalDesc.replace(regex, match => `<span class="highlight">${match}</span>`);
+                        descElement.innerHTML = highlightedDesc;
+                    }
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Show/hide results info and no results message
+            if (visibleCount > 0) {
+                searchResultsInfo.classList.remove('hidden');
+                resultsCount.textContent = `Found ${visibleCount} post${visibleCount !== 1 ? 's' : ''} matching "${query}"`;
+                noResults.classList.add('hidden');
+            } else {
+                searchResultsInfo.classList.add('hidden');
+                noResults.classList.remove('hidden');
+            }
+        }
+
+        // Function to reset search
+        function resetSearch() {
+            searchInput.value = '';
+
+            postCards.forEach(card => {
+                card.style.display = 'flex';
+
+                // Remove highlighting
+                const titleElement = card.querySelector('h3 a');
+                if (titleElement) {
+                    titleElement.innerHTML = titleElement.textContent;
+                }
+
+                const descElement = card.querySelector('p');
+                if (descElement) {
+                    descElement.innerHTML = descElement.textContent;
+                }
+            });
+
+            searchResultsInfo.classList.add('hidden');
+            noResults.classList.add('hidden');
+        }
+
+        // Event listeners
+        searchInput.addEventListener('input', performSearch);
+
+        if (clearSearch) {
+            clearSearch.addEventListener('click', resetSearch);
+        }
+
+        // Add debounce to improve performance
+        let debounceTimer;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(performSearch, 300);
+        });
+    });
+</script>
