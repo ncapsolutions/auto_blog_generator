@@ -29,6 +29,11 @@ class PostsController < ApplicationController
 
     if @post.save
       attach_ai_image(@post)
+
+      
+      # Schedule sync to WordPress
+      schedule_sync(@post)
+
       redirect_to @post, notice: "Post was successfully created."
     else
       render :new, status: :unprocessable_entity
@@ -45,6 +50,10 @@ class PostsController < ApplicationController
 
     if @post.update(updated_params)
       attach_ai_image(@post, replace: true)
+
+      # Schedule sync to WordPress
+      schedule_sync(@post)
+
       redirect_to @post, notice: "Post was successfully updated."
     else
       render :edit, status: :unprocessable_entity
@@ -128,6 +137,16 @@ class PostsController < ApplicationController
     redirect_to posts_path, alert: "Not authorized." unless current_user == @post.user
   end
 
+  
+  # --- SCHEDULE WORDPRESS SYNC ---
+  def schedule_sync(post)
+    if post.published_at > Time.current
+      PublishPostJob.set(wait_until: post.published_at).perform_later(post.id)
+    else
+      SyncToWordpressJob.perform_later(post.id)
+    end
+  end
+
   # --- AI IMAGE ATTACHMENT ---
   def attach_ai_image(post, replace: false)
     return unless post.ai_image_url.present?
@@ -151,63 +170,63 @@ class PostsController < ApplicationController
     format_description(post.title, description_to_format, keywords, links)
   end
 
-def format_description(title, description, keywords = [], links = [])
-  return " " if description.blank?
+  def format_description(title, description, keywords = [], links = [])
+    return " " if description.blank?
 
-  clean_description = description.dup
-  clean_description.gsub!(/^(title|introduction):?/i, '') # only remove literal "title:" or "introduction:"
-  clean_description.strip!
+    clean_description = description.dup
+    clean_description.gsub!(/^(title|introduction):?/i, '') # only remove literal "title:" or "introduction:"
+    clean_description.strip!
 
-  # Remove any existing title HTML from the description
-  title_pattern = /<h2><strong>.*?<\/strong><\/h2>/i
-  clean_description.gsub!(title_pattern, '')
+    # Remove any existing title HTML from the description
+    title_pattern = /<h2><strong>.*?<\/strong><\/h2>/i
+    clean_description.gsub!(title_pattern, '')
 
-  keywords = Array(keywords)
-  links = Array(links)
+    keywords = Array(keywords)
+    links = Array(links)
 
-  # Replace keywords with styled links
-  if keywords.present? && links.present? && keywords.size == links.size
-    keywords.each_with_index do |kw, i|
-      next if kw.blank? || links[i].blank?
-      pattern = /(?<!\w)(#{Regexp.escape(kw)})(?!\w)/i
-      replacement = "<a href='#{links[i]}' target='_blank' style=\"color:#2563eb; font-weight:600; text-decoration:underline !important;\">\\1</a>"
-      clean_description.gsub!(pattern, replacement)
+    # Replace keywords with styled links
+    if keywords.present? && links.present? && keywords.size == links.size
+      keywords.each_with_index do |kw, i|
+        next if kw.blank? || links[i].blank?
+        pattern = /(?<!\w)(#{Regexp.escape(kw)})(?!\w)/i
+        replacement = "<a href='#{links[i]}' target='_blank' style=\"color:#2563eb; font-weight:600; text-decoration:underline !important;\">\\1</a>"
+        clean_description.gsub!(pattern, replacement)
+      end
     end
+
+    # Append missing keywords
+    missing = keywords.reject { |kw| clean_description.downcase.include?(kw.to_s.downcase) }
+    unless missing.empty?
+      missing_links = missing.map do |kw|
+        idx = keywords.index(kw)
+        link = links[idx] if idx
+        "<a href='#{link}' target='_blank' style=\"color:#2563eb; font-weight:600; text-decoration:underline !important;\">#{kw}</a>"
+      end
+      clean_description += "<div class='spacing'></div><p><strong>Related Keywords:</strong> #{missing_links.join(', ')}</p>"
+    end
+
+    # Title + Paragraph formatting
+    title_html = "<h2><strong>#{title}</strong></h2>"
+    paragraphs = clean_description.split(/\n\n+/)
+    formatted_paragraphs = paragraphs.map do |para|
+      para.strip!
+      next if para.empty?
+
+      case para
+      when /^##\s+(.+)/
+        "<h3>#{$1.strip}</h3>"
+      when /^(\d+\.|\-)\s+/
+        items = para.split("\n").map { |line| "<li>#{line.gsub(/^(\d+\.|\-)\s+/, '').strip}</li>" }.join
+        "<ul>#{items}</ul>"
+      else
+        "<p>#{para.gsub(/\n/, '<br>')}</p>"
+      end
+    end.compact
+
+    # Always add the new title at the beginning
+    final_content = "#{title_html}<div class='spacing'></div>#{formatted_paragraphs.join('<div class=\"spacing\"></div>')}"
+    
+    final_content
   end
-
-  # Append missing keywords
-  missing = keywords.reject { |kw| clean_description.downcase.include?(kw.to_s.downcase) }
-  unless missing.empty?
-    missing_links = missing.map do |kw|
-      idx = keywords.index(kw)
-      link = links[idx] if idx
-      "<a href='#{link}' target='_blank' style=\"color:#2563eb; font-weight:600; text-decoration:underline !important;\">#{kw}</a>"
-    end
-    clean_description += "<div class='spacing'></div><p><strong>Related Keywords:</strong> #{missing_links.join(', ')}</p>"
-  end
-
-  # Title + Paragraph formatting
-  title_html = "<h2><strong>#{title}</strong></h2>"
-  paragraphs = clean_description.split(/\n\n+/)
-  formatted_paragraphs = paragraphs.map do |para|
-    para.strip!
-    next if para.empty?
-
-    case para
-    when /^##\s+(.+)/
-      "<h3>#{$1.strip}</h3>"
-    when /^(\d+\.|\-)\s+/
-      items = para.split("\n").map { |line| "<li>#{line.gsub(/^(\d+\.|\-)\s+/, '').strip}</li>" }.join
-      "<ul>#{items}</ul>"
-    else
-      "<p>#{para.gsub(/\n/, '<br>')}</p>"
-    end
-  end.compact
-
-  # Always add the new title at the beginning
-  final_content = "#{title_html}<div class='spacing'></div>#{formatted_paragraphs.join('<div class=\"spacing\"></div>')}"
-  
-  final_content
-end
 
 end
