@@ -176,7 +176,7 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('turbo:load', function() {
         const searchInput = document.getElementById('searchInput');
         const postsContainer = document.getElementById('postsContainer');
         const searchResultsInfo = document.getElementById('searchResultsInfo');
@@ -185,10 +185,6 @@
         const clearSearch = document.getElementById('clearSearch');
         const postCards = document.querySelectorAll('.post-card');
 
-        // Store original posts for resetting
-        const originalPosts = Array.from(postCards);
-
-        // Function to perform search
         function performSearch() {
             const query = searchInput.value.toLowerCase().trim();
 
@@ -204,36 +200,16 @@
                 const description = card.getAttribute('data-description');
                 const author = card.getAttribute('data-author');
 
-                // Check if the query matches any of the post attributes
                 const matches = title.includes(query) || description.includes(query) || author.includes(query);
 
                 if (matches) {
                     card.style.display = 'flex';
                     visibleCount++;
-
-                    // Highlight matching text in title
-                    const titleElement = card.querySelector('h3 a');
-                    if (titleElement && title.includes(query)) {
-                        const originalTitle = titleElement.textContent;
-                        const regex = new RegExp(query, 'gi');
-                        const highlightedTitle = originalTitle.replace(regex, match => `<span class="highlight">${match}</span>`);
-                        titleElement.innerHTML = highlightedTitle;
-                    }
-
-                    // Highlight matching text in description
-                    const descElement = card.querySelector('p');
-                    if (descElement && description.includes(query)) {
-                        const originalDesc = descElement.textContent;
-                        const regex = new RegExp(query, 'gi');
-                        const highlightedDesc = originalDesc.replace(regex, match => `<span class="highlight">${match}</span>`);
-                        descElement.innerHTML = highlightedDesc;
-                    }
                 } else {
                     card.style.display = 'none';
                 }
             });
 
-            // Show/hide results info and no results message
             if (visibleCount > 0) {
                 searchResultsInfo.classList.remove('hidden');
                 resultsCount.textContent = `Found ${visibleCount} post${visibleCount !== 1 ? 's' : ''} matching "${query}"`;
@@ -244,41 +220,24 @@
             }
         }
 
-        // Function to reset search
         function resetSearch() {
             searchInput.value = '';
-
             postCards.forEach(card => {
                 card.style.display = 'flex';
-
-                // Remove highlighting
-                const titleElement = card.querySelector('h3 a');
-                if (titleElement) {
-                    titleElement.innerHTML = titleElement.textContent;
-                }
-
-                const descElement = card.querySelector('p');
-                if (descElement) {
-                    descElement.innerHTML = descElement.textContent;
-                }
             });
-
             searchResultsInfo.classList.add('hidden');
             noResults.classList.add('hidden');
         }
 
-        // Event listeners
-        searchInput.addEventListener('input', performSearch);
-
-        if (clearSearch) {
-            clearSearch.addEventListener('click', resetSearch);
-        }
-
-        // Add debounce to improve performance
+        // ✅ Only debounce version
         let debounceTimer;
         searchInput.addEventListener('input', () => {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(performSearch, 300);
         });
+
+        if (clearSearch) {
+            clearSearch.addEventListener('click', resetSearch);
+        }
     });
 </script>
