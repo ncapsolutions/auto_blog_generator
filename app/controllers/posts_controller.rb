@@ -141,9 +141,13 @@ class PostsController < ApplicationController
   # --- SCHEDULE WORDPRESS SYNC ---
   def schedule_sync(post)
     if post.published_at > Time.current
+      # Schedule job for future time
       PublishPostJob.set(wait_until: post.published_at).perform_later(post.id)
+      Rails.logger.info "🔹 Scheduled PublishPostJob for Post ##{post.id} at #{post.published_at}"
     else
+      # Immediate sync
       SyncToWordpressJob.perform_later(post.id)
+      Rails.logger.info "🔹 Enqueued SyncToWordpressJob immediately for Post ##{post.id}"
     end
   end
 
