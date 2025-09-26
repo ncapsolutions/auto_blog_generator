@@ -98,14 +98,17 @@
                             <%= link_to edit_user_registration_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" do %>
                             <i class="fas fa-user-cog mr-2"></i> Account Settings
                             <% end %>
-                            <%= button_to destroy_user_session_path, method: :delete, class: "block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" do %>
+                            <%= button_to destroy_user_session_path,
+                                method: :delete,
+                                data: { turbo: false },
+                                class: "block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" do %>
                             <i class="fas fa-sign-out-alt mr-2"></i> Sign Out
                             <% end %>
                         </div>
                     </div>
                     <% else %>
-                    <%= link_to "Sign In", new_user_session_path, class: "text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium" %>
-                    <%= link_to "Sign Up", new_user_registration_path, class: "bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700" %>
+                    <%= link_to "Sign In", new_user_session_path, data: { turbo: false }, class: "text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium" %>
+                    <%= link_to "Sign Up", new_user_registration_path, data: { turbo: false }, class: "bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700" %>
                     <% end %>
                 </div>
             </div>
